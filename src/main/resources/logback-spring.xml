@@ -13,13 +13,14 @@
 	</appender>
 	<appender name="JSON"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>logs/app.json</file>
+		<file>logs/${SPRING_APP_NAME}.json</file>
 		<rollingPolicy
 			class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<fileNamePattern>
-				logs/app-%d{yyyy-MM-dd}.json
+				logs/${SPRING_APP_NAME}-%d{yyyy-MM-dd}.json
 			</fileNamePattern>
 			<maxHistory>30</maxHistory>
+			<totalSizeCap>1GB</totalSizeCap>
 		</rollingPolicy>
 		<encoder class="net.logstash.logback.encoder.LogstashEncoder" />
 	</appender>
