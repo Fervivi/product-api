@@ -19,6 +19,7 @@ Permite crear, consultar, actualizar y desactivar productos.
 * Flyway
 * Docker
 * Maven
+* Eureka Client
 
 ---
 
@@ -111,9 +112,9 @@ Body:
 
 ```env
 SPRING_ENV=dev
-SPRING_APP_NAME=Product
 
 HOST_PORT=8005
+EUREKA_URL=http://localhost:8761/eureka/
 
 MYSQL_DATABASE=db_products
 
@@ -141,6 +142,18 @@ Header:
 ```txt
 Authorization: Bearer TOKEN
 ```
+
+## Eureka y API Gateway
+
+El servicio se registra en Eureka con el nombre estable:
+
+```txt
+PRODUCT-SERVICE
+```
+
+`store-manager` puede consumirlo internamente mediante ese nombre lógico. Como
+`product` es un servicio interno orquestado por el manager, no necesita una ruta
+pública propia en el API Gateway. El Gateway debe exponer la ruta del manager.
 
 ---
 

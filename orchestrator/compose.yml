@@ -1,0 +1,310 @@
+x-common-env: &common-env
+  HOST_DB_PORT: 3306
+  MYSQL_HOST: db
+  MYSQL_PASSWORD: password
+  MYSQL_USER: user
+  SPRING_ENV: dev
+  SPRING_JWT_ISSUER: login-service
+  SPRING_JWT_PUBLIC: /v3/api-docs/**,/swagger-ui/**
+  SPRING_JWT_SECRET: secret-key
+  SPRING_LOG_LEVEL: WARN
+  EUREKA_URL: http://eureka-server:8123/eureka/
+  SPRING_EUREKA_URL: http://eureka-server:8123/eureka/
+
+services:
+  eureka-server:
+    build:
+      context: ./eureka-server
+    ports:
+      - "8123:8123"
+    environment:
+      SPRING_APP_NAME: EurekaServer
+      HOST_PORT: 8123
+      DOCKER_DOMAIN_NETWORK: fullstack_network
+    networks:
+      - fullstack_network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8123/actuator/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_ENV: dev
+      SPRING_APP_NAME: ApiGateway
+      SPRING_LOG_LEVEL: INFO
+      HOST_PORT: 8080
+      DOCKER_DOMAIN_NETWORK: fullstack_network
+    networks:
+      - fullstack_network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+
+  auth-api:
+    build:
+      context: ./auth-api
+      target: production
+    ports:
+      - "8000:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      MYSQL_DATABASE: auth
+      SPRING_APP_NAME: auth-api
+      SPRING_JWT_EXPIRATION: 86400000
+      SPRING_JWT_PUBLIC: /api/v1/health,/v3/api-docs/**,/swagger-ui/**
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  users-api:
+    build:
+      context: ./users-api
+      target: production
+    ports:
+      - "8001:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      MYSQL_DATABASE: users
+      SPRING_APP_NAME: users-api
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  sales-api:
+    build:
+      context: ./sales-api
+      target: production
+    ports:
+      - "8002:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      MYSQL_DATABASE: sales
+      SPRING_APP_NAME: sales-api
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  invoice-api:
+    build:
+      context: ./invoice-api
+      target: production
+    ports:
+      - "8003:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      MYSQL_DATABASE: invoice
+      SPRING_APP_NAME: invoice-api
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  carts-api:
+    build:
+      context: ./carts-api
+      target: production
+    ports:
+      - "8004:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      MYSQL_DATABASE: carts
+      SPRING_APP_NAME: carts-api
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  product-api:
+    build:
+      context: ./product-api
+      target: production
+    ports:
+      - "8005:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      MYSQL_DATABASE: product
+      SPRING_APP_NAME: PRODUCT-SERVICE
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  pets-api:
+    build:
+      context: ./pets-api
+      target: production
+    ports:
+      - "8006:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      MYSQL_DATABASE: pets
+      SPRING_APP_NAME: pets-api
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  appointments-api:
+    build:
+      context: ./appointments-api
+      target: production
+    ports:
+      - "8007:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      MYSQL_DATABASE: appointments
+      SPRING_APP_NAME: appointments-api
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  vets-api:
+    build:
+      context: ./vets-api
+      target: production
+    ports:
+      - "8008:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      MYSQL_DATABASE: vets
+      SPRING_APP_NAME: vets-api
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  store-manager-api:
+    build:
+      context: ./store-manager-api
+      target: production
+    ports:
+      - "8009:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      MYSQL_DATABASE: store_manager
+      SPRING_APP_NAME: store-manager-api
+      CARTS_API_BASE_URL: http://carts-api:8080/api/v1/carts
+      PRODUCTS_API_BASE_URL: http://product-api:8080/api/v1/products
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  accounting-manager-api:
+    build:
+      context: ./accounting-manager-api
+      target: production
+    ports:
+      - "8010:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      MYSQL_DATABASE: accounting_manager
+      SPRING_APP_NAME: accounting-manager-api
+      SALES_API_BASE_URL: http://sales-api:8080/api/v1/sales
+      INVOICES_API_BASE_URL: http://invoice-api:8080/api/v1/invoices
+      USERS_API_BASE_URL: http://users-api:8080/api/v1/users
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  vet-manager-api:
+    build:
+      context: ./vet-manager-api
+      target: production
+    ports:
+      - "8011:8080"
+    environment:
+      <<: *common-env
+      HOST_PORT: 8080
+      SPRING_APP_NAME: vet-manager-api
+      SPRING_JWT_PUBLIC: /appointments/v3/api-docs,/pets/v3/api-docs,/vets/v3/api-docs,/v3/api-docs/**,/swagger-ui/**
+      SERVICE_APPOINTMENTS_BASE_URL: http://appointments-api:8080
+      SERVICE_PETS_BASE_URL: http://pets-api:8080
+      SERVICE_VETS_BASE_URL: http://vets-api:8080
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:lts
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - global_mysql_data:/var/lib/mysql
+      - mysql_init_volume:/docker-entrypoint-initdb.d
+    networks:
+      - fullstack_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 15m
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+      start_interval: 1s
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8088:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    networks:
+      - fullstack_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  global_mysql_data:
+  mysql_init_volume:
+    name: mysql_init_volume
+
+networks:
+  fullstack_network:
+    name: fullstack_network
