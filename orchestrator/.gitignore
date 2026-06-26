@@ -1,0 +1,5 @@
+*-api/
+api-gateway/
+eureka-server/
+mysql-init/
+*.sql
